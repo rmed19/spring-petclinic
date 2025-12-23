@@ -1,0 +1,137 @@
+# =============================================================================
+# Kubernetes Deployment - Spring PetClinic
+# Mini-Projet DevOps - ISIL3
+# =============================================================================
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petclinic-deployment
+  labels:
+    app: petclinic
+    version: v1
+    environment: production
+spec:
+  # Nombre de réplicas (pods)
+  replicas: 2
+
+  # Sélecteur pour identifier les pods gérés
+  selector:
+    matchLabels:
+      app: petclinic
+
+  # Stratégie de mise à jour (Rolling Update)
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+
+  # Template des pods
+  template:
+    metadata:
+      labels:
+        app: petclinic
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/actuator/prometheus"
+    spec:
+      # Conteneurs
+      containers:
+        - name: petclinic
+          # IMAGE_TAG sera remplacé dynamiquement par Jenkins
+          image: IMAGE_TAG
+          imagePullPolicy: Always
+
+          # Ports exposés
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+
+          # Variables d'environnement
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "production"
+            - name: JAVA_OPTS
+              value: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0"
+
+          # Ressources (requests et limits)
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+
+          # Probe de démarrage (Startup Probe)
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            failureThreshold: 30
+
+          # Probe de disponibilité (Readiness Probe)
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+
+          # Probe de vie (Liveness Probe)
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 3
+            successThreshold: 1
+            failureThreshold: 3
+
+      # Délai de terminaison gracieuse
+      terminationGracePeriodSeconds: 30
+
+      # Contraintes de scheduling
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - petclinic
+                topologyKey: kubernetes.io/hostname
+
+---
+
+# =============================================================================
+# ConfigMap pour la configuration de l'application (optionnel)
+# =============================================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: petclinic-config
+  labels:
+    app: petclinic
+data:
+  application.properties: |
+    # Configuration Spring Boot pour Kubernetes
+    spring.application.name=petclinic
+    server.port=8080
+    management.endpoints.web.exposure.include=health,info,prometheus,metrics
+    management.endpoint.health.probes.enabled=true
+    management.health.livenessState.enabled=true
+    management.health.readinessState.enabled=true
