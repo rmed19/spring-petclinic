@@ -1,7 +1,7 @@
 # =============================================================================
 # Dockerfile Multi-Stage pour Spring PetClinic
 # Stage 1: Build avec Maven
-# Stage 2: Runtime avec JRE Alpine (image légère)
+# Stage 2: Runtime avec JRE (multi-architecture)
 # =============================================================================
 
 # -----------------------------------------------------------------------------
@@ -25,16 +25,16 @@ COPY src ./src
 RUN mvn package -DskipTests -B
 
 # -----------------------------------------------------------------------------
-# STAGE 2: RUNTIME
+# STAGE 2: RUNTIME (multi-arch: amd64, arm64)
 # -----------------------------------------------------------------------------
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre
 
 LABEL maintainer="DevTech Solutions"
 LABEL description="Spring PetClinic Application - Production"
 LABEL version="1.0.0"
 
 # Création d'un utilisateur non-root pour la sécurité
-RUN addgroup -S petclinic && adduser -S petclinic -G petclinic
+RUN groupadd -r petclinic && useradd -r -g petclinic petclinic
 
 WORKDIR /app
 
@@ -52,7 +52,7 @@ EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:8080/actuator/health || exit 1
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 # Variables d'environnement JVM optimisées pour conteneur
 ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
