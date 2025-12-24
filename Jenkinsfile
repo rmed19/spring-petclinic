@@ -25,6 +25,9 @@ pipeline {
         // Application
         APP_URL = 'http://petclinic-app:8080'
 
+        // Testcontainers - Disable Ryuk for Docker-in-Docker environments
+        TESTCONTAINERS_RYUK_DISABLED = "true"
+
         // Maven - Use absolute path outside workspace to avoid nohttp-checkstyle scanning .m2 POMs
         MAVEN_OPTS = '-Dmaven.repo.local=/var/jenkins_home/.m2/repository'
     }
