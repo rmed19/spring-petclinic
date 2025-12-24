@@ -112,12 +112,13 @@ pipeline {
             steps {
                 echo '=== ÉTAPE 3: Analyse de qualité SonarQube ==='
 
-                withSonarQubeEnv('SonarQube-Server') {
+                withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                     sh '''
                         mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
                             -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                             -Dsonar.projectName="Spring PetClinic" \
                             -Dsonar.host.url=${SONAR_HOST_URL} \
+                            -Dsonar.token=${SONAR_TOKEN} \
                             -Dsonar.java.binaries=target/classes \
                             -B
                     '''
