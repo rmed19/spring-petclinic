@@ -25,8 +25,8 @@ pipeline {
         // Application
         APP_URL = 'http://petclinic-app:8080'
 
-        // Maven
-        MAVEN_OPTS = '-Dmaven.repo.local=.m2/repository'
+        // Maven - Use absolute path outside workspace to avoid nohttp-checkstyle scanning .m2 POMs
+        MAVEN_OPTS = '-Dmaven.repo.local=/var/jenkins_home/.m2/repository'
     }
 
     // -------------------------------------------------------------------------
