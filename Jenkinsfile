@@ -229,16 +229,19 @@ pipeline {
         }
 
         // =====================================================================
-        // ÉTAPE 7: DÉPLOIEMENT KUBERNETES (MINIKUBE)
+        // ÉTAPE 7: DÉPLOIEMENT KUBERNETES (MINIKUBE) - OPTIONNEL
         // =====================================================================
         stage('7. Deploy to Kubernetes') {
+            when {
+                expression {
+                    // Vérifier si kubectl est configuré et peut accéder au cluster
+                    return sh(script: 'kubectl cluster-info --request-timeout=5s 2>/dev/null', returnStatus: true) == 0
+                }
+            }
             steps {
                 echo '=== ÉTAPE 7: Déploiement sur Kubernetes (Minikube) ==='
 
                 sh '''
-                    # Vérifier la connexion à Kubernetes
-                    kubectl cluster-info || echo "Attention: Cluster K8s non accessible"
-
                     # Mettre à jour le tag de l'image dans le deployment
                     sed -i "s|IMAGE_TAG|${DOCKER_IMAGE}:${DOCKER_TAG}|g" k8s/deployment.yaml
 
