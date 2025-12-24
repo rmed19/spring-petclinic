@@ -114,7 +114,7 @@ pipeline {
 
                 withSonarQubeEnv('SonarQube-Server') {
                     sh '''
-                        mvn sonar:sonar \
+                        mvn org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
                             -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                             -Dsonar.projectName="Spring PetClinic" \
                             -Dsonar.host.url=${SONAR_HOST_URL} \
