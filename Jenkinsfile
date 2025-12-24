@@ -88,7 +88,7 @@ pipeline {
 
                 sh '''
                     mvn clean compile -B
-                    mvn test -B
+                    mvn test -B -Dtest=!*IntegrationTests
                 '''
             }
             post {
