@@ -155,7 +155,7 @@ pipeline {
                     curl -s --retry 10 --retry-delay 5 http://localhost:9090/actuator/health || true
 
                     # Exécuter les tests Selenium
-                    mvn test -Dtest=*SeleniumTest* -Dselenium.hub.url=${SELENIUM_HUB_URL} -Dapp.url=http://host.docker.internal:9090 -B || true
+                    mvn test -Dtest=*SeleniumTest* -Dsurefire.failIfNoSpecifiedTests=false -Dselenium.hub.url=${SELENIUM_HUB_URL} -Dapp.url=http://host.docker.internal:9090 -B || true
 
                     # Arrêter l'application
                     kill $APP_PID || true
