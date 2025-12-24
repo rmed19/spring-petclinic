@@ -60,7 +60,8 @@ class MySqlIntegrationTests {
 
 	@Test
 	void testFindAll() {
-		vets.findAll();
+		var result = vets.findAll();
+		assertThat(result).isNotEmpty();
 		vets.findAll(); // served from cache
 	}
 
